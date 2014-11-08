@@ -1,0 +1,4 @@
+*.pyc
+
+# local venv egg files
+fib.egg-info
