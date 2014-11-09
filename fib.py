@@ -23,12 +23,13 @@ def cli():
 @click.option("-t", "--ttf", is_flag=True, help="TrueType format")
 @click.option("-o", "--otf", is_flag=True, help="OpenType format")
 @click.option("-s", "--svg", is_flag=True, help="SVG format")
+@click.option("-f", "--sfd", is_flag=True, help="SFD format (Fontforge)")
 @click.option("-u", "--ufo", is_flag=True, help="UFO format")
 @click.option("-e", "--eot", is_flag=True, help="EOT format")
 @click.option("-p", "--pack-webfont", is_flag=True,
               help="Make a ready-to-use webfont package")
 @click.argument("fontfiles", nargs=-1, type=click.Path(exists=True))
-def convert(fontfiles, woff, ttf, otf, svg, ufo, eot, pack_webfont):
+def convert(fontfiles, woff, ttf, otf, svg, sfd, ufo, eot, pack_webfont):
     """Convert fonts to and from various formats"""
     for fontfile in fontfiles:
         fontfile = click.format_filename(fontfile)
@@ -53,6 +54,9 @@ def convert(fontfiles, woff, ttf, otf, svg, ufo, eot, pack_webfont):
         if ufo:
             ufo_filename = d + basename + '.ufo'
             font.generate(ufo_filename)
+        if sfd:
+            sfd_filename = d + basename + '.sfd'
+            font.save(sfd_filename)
         if eot:
             eot_filename = d + basename + '.eot'
             if ttf:
@@ -70,3 +74,5 @@ def convert(fontfiles, woff, ttf, otf, svg, ufo, eot, pack_webfont):
 def transpace():
     """Transplant one font's spacing into another"""
     click.echo("Transpacing!")
+
+

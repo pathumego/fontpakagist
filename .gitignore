@@ -2,3 +2,4 @@
 
 # local venv egg files
 fib.egg-info
+*.swp
