@@ -1,4 +1,9 @@
 *.pyc
+*.ttf
+*.otf
+*.ufo
+*.woff
+*.eot
 
 # local venv egg files
 fib.egg-info
