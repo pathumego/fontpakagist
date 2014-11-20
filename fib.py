@@ -1,6 +1,7 @@
 import sys
 import os
 import click
+import subprocess
 try:
     import fontforge
 except:
@@ -11,6 +12,8 @@ except:
     click.echo("If you have it on your system, try deleting the no-site-packages.txt file inside")
     click.echo("your virtualenv's lib/pythonX.X directory.")
     sys.exit()
+
+SCRIPTS_DIR = "/home/rlafuente/repos/tinytypetools/fffilters"
 
 @click.group()
 def cli():
@@ -60,12 +63,12 @@ def convert(fontfiles, woff, ttf, otf, svg, sfd, ufo, eot, pack_webfont):
         if eot:
             eot_filename = d + basename + '.eot'
             if ttf:
-                cmd = 'ttf2eot < %s > %s' % (ttf_filename, eot_filename)
+                cmd = 'ttf2eot %s %s' % (ttf_filename, eot_filename)
                 os.system(cmd)
             else:
                 ttf_filename = d + basename + '.ttf'
                 font.generate(ttf_filename)
-                cmd = 'ttf2eot < %s > %s' % (ttf_filename, eot_filename)
+                cmd = 'ttf2eot %s %s' % (ttf_filename, eot_filename)
                 os.system(cmd)
                 os.remove(ttf_filename)
 
@@ -75,4 +78,54 @@ def transpace():
     """Transplant one font's spacing into another"""
     click.echo("Transpacing!")
 
+
+@click.option("-a", "--angle", help="Angle in degrees", default=45)
+@click.option("-o", "--outline-width", help="Outline stroke width", default=5)
+@click.option("-s", "--shadow-width", help="Shadow depth", default=30)
+@click.argument("fontfiles", nargs=-1, type=click.Path(exists=True))
+@cli.command()
+def effect_shadow(fontfiles, angle, outline_width, shadow_width):
+    """Apply a shadow effect."""
+    for fontfile in fontfiles:
+        fontfile = click.format_filename(fontfile)
+        basename, ext = os.path.splitext(fontfile)
+        outfile = basename + "-Shadow" + ext
+        cmd = "fontforge -script %s %s %s %d %d %d" % (
+              os.path.join(SCRIPTS_DIR, "fffshadow.pe"), fontfile, outfile,
+              angle, outline_width, shadow_width
+              )
+        subprocess.call(cmd, shell=True)
+
+
+@click.option("-o", "--outline-width", help="Outline stroke width", default=20)
+@click.argument("fontfiles", nargs=-1, type=click.Path(exists=True))
+@cli.command()
+def effect_outline(fontfiles, outline_width):
+    """Apply an outline effect."""
+    for fontfile in fontfiles:
+        fontfile = click.format_filename(fontfile)
+        basename, ext = os.path.splitext(fontfile)
+        outfile = basename + "-Outline" + ext
+        cmd = "fontforge -script %s %s %s %d" % (
+              os.path.join(SCRIPTS_DIR, "fffoutline.pe"), fontfile, outfile,
+              outline_width
+              )
+        subprocess.call(cmd, shell=True)
+
+
+@click.option("-o", "--outline-width", help="Outline stroke width", default=20)
+@click.option("-g", "--gap", help="Inline gap", default=25)
+@click.argument("fontfiles", nargs=-1, type=click.Path(exists=True))
+@cli.command()
+def effect_inline(fontfiles, outline_width, gap):
+    """Apply an outline effect."""
+    for fontfile in fontfiles:
+        fontfile = click.format_filename(fontfile)
+        basename, ext = os.path.splitext(fontfile)
+        outfile = basename + "-Inline" + ext
+        cmd = "fontforge -script %s %s %s %d %d" % (
+              os.path.join(SCRIPTS_DIR, "fffinline.pe"), fontfile, outfile,
+              outline_width, gap
+              )
+        subprocess.call(cmd, shell=True)
 
