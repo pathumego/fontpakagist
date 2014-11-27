@@ -15,6 +15,7 @@ except:
 
 SCRIPTS_DIR = "/home/rlafuente/repos/tinytypetools/fffilters"
 
+
 @click.group()
 def cli():
     """A swiss-knife for working with font files."""
@@ -79,6 +80,34 @@ def transpace():
     click.echo("Transpacing!")
 
 
+@cli.group()
+def pkg():
+    """Create and work with font packages."""
+    pass
+
+
+@click.option("-y", "--yes", is_flag=True, help="Assume yes answer to all prompts (non-interactive)")
+@click.argument("fontfiles", nargs=-1, type=click.Path(exists=True))
+@pkg.command()
+def create():
+    """Takes an existing font file and generates a font package."""
+    # get fontfiles
+    # prompt if ok to create pkg dir
+    # convert to UFO
+    # generate JSON
+    # generate README
+
+
+@pkg.command()
+def sync():
+    """Updates the font files in a package to match fontpackage.json metadata."""
+
+
+@pkg.command()
+def validate():
+    """Checks if the font package is valid."""
+
+
 @click.option("-a", "--angle", help="Angle in degrees", default=45)
 @click.option("-o", "--outline-width", help="Outline stroke width", default=5)
 @click.option("-s", "--shadow-width", help="Shadow depth", default=30)
@@ -93,7 +122,7 @@ def effect_shadow(fontfiles, angle, outline_width, shadow_width):
         cmd = "fontforge -script %s %s %s %d %d %d" % (
               os.path.join(SCRIPTS_DIR, "fffshadow.pe"), fontfile, outfile,
               angle, outline_width, shadow_width
-              )
+        )
         subprocess.call(cmd, shell=True)
 
 
@@ -109,7 +138,7 @@ def effect_outline(fontfiles, outline_width):
         cmd = "fontforge -script %s %s %s %d" % (
               os.path.join(SCRIPTS_DIR, "fffoutline.pe"), fontfile, outfile,
               outline_width
-              )
+        )
         subprocess.call(cmd, shell=True)
 
 
@@ -118,7 +147,7 @@ def effect_outline(fontfiles, outline_width):
 @click.argument("fontfiles", nargs=-1, type=click.Path(exists=True))
 @cli.command()
 def effect_inline(fontfiles, outline_width, gap):
-    """Apply an outline effect."""
+    """Apply an inline effect."""
     for fontfile in fontfiles:
         fontfile = click.format_filename(fontfile)
         basename, ext = os.path.splitext(fontfile)
@@ -126,6 +155,21 @@ def effect_inline(fontfiles, outline_width, gap):
         cmd = "fontforge -script %s %s %s %d %d" % (
               os.path.join(SCRIPTS_DIR, "fffinline.pe"), fontfile, outfile,
               outline_width, gap
-              )
+        )
         subprocess.call(cmd, shell=True)
 
+
+@cli.group()
+def foundry():
+    """Commands for generating a HTML showcase."""
+
+
+@foundry.command()
+def generate():
+    pass
+
+
+@foundry.command()
+def init():
+    # create foundrysettings.conf
+    pass
