@@ -17,6 +17,7 @@ except:
     click.echo("your virtualenv's lib/pythonX.X directory.")
     sys.exit()
 
+
 SCRIPTS_DIR = "/home/rlafuente/repos/tinytypetools/fffilters"
 
 
@@ -26,8 +27,13 @@ def cli():
     pass
 
 
+def run_shell_cmd(cmd):
+    log.debug(cmd)
+    subprocess.call(cmd, shell=True)
+
+
 def _convert_fontfile(fontfile, format):
-    font = fontforge.open(fontfile)
+    font = open_font(fontfile)
     d = os.path.dirname(os.path.abspath(fontfile)) + '/'
     filename = os.path.basename(fontfile)
     basename, ext = os.path.splitext(filename)
@@ -53,12 +59,12 @@ def _convert_fontfile(fontfile, format):
         filename = d + basename + '.eot'
         if ext == ".ttf":
             cmd = 'ttf2eot %s %s' % (fontfile, filename)
-            os.system(cmd)
+            run_shell_cmd.system(cmd)
         else:
             ttf_filename = d + basename + '.ttf'
             font.generate(ttf_filename)
             cmd = 'ttf2eot %s %s' % (ttf_filename, filename)
-            os.system(cmd)
+            run_shell_cmd(cmd)
             os.remove(ttf_filename)
     return filename
 
@@ -110,37 +116,94 @@ def _create_fontpkg(fontfile, yes=False):
     pass
 
 
+def open_font(fontfile, debug=False):
+    # suppress pesky fontforge warnings
+    if not debug:
+        font = fontforge.open(fontfile)
+    else:
+        font = fontforge.open(fontfile)
+    return font
+
+
+def get_attr_from_fonts(attr_name, fontfiles, is_ttfname=False, ignore_blank=False):
+    values = []
+    for fontfile in fontfiles:
+        font = open_font(fontfile)
+        if is_ttfname:
+            value = get_ttf_property(font, attr_name)
+        else:
+            value = getattr(font, attr_name)
+        values.append(value)
+    unique_values = list(set(values))
+    if len(unique_values) == 1:
+        # all have same family name
+        return values[0]
+    else:
+        log.debug("Multiple values for %s" % attr_name)
+        return values
+
+
+def get_ttf_property(font, name):
+    for lang, attr, value in font.sfnt_names:
+        if attr.lower() == name.lower():
+            return value
+    return None
+
+
 @click.option("-y", "--yes", is_flag=True, help="Assume yes answer to all prompts (non-interactive)", default=False)
-@click.argument("fontfile", type=click.Path(exists=True))
+@click.argument("fontfiles", nargs=-1, type=click.Path(exists=True))
 @pkg.command()
-def create(fontfile, yes):
+def create(fontfiles, yes):
     """Takes an existing font file and generates a font package."""
-    # get fontfiles
-    font = fontforge.open(fontfile)
+    # determine family name
+    family_name = get_attr_from_fonts("familyname", fontfiles)
+    if not yes:
+        click.echo()
+        newname = click.prompt("Font package name (leave blank for \"%s\")" % (family_name), default="")
+        if newname:
+            family_name = newname
+
+    pkg_info = {
+        "family_name": family_name,
+        "copyright": get_attr_from_fonts("copyright", fontfiles),
+        "designer": get_attr_from_fonts("designer", fontfiles, is_ttfname=True),
+        "designer_url": get_attr_from_fonts("designer url", fontfiles, is_ttfname=True),
+        "manufacturer": get_attr_from_fonts("manufacturer", fontfiles, is_ttfname=True),
+        "vendor_url": get_attr_from_fonts("vendor url", fontfiles, is_ttfname=True),
+        "trademark": get_attr_from_fonts("trademark", fontfiles, is_ttfname=True),
+        "license": get_attr_from_fonts("license", fontfiles, is_ttfname=True),
+        "license url": get_attr_from_fonts("license_url", fontfiles, is_ttfname=True),
+        "resources": [],
+    }
+
     # prompt if ok to create pkg dir
-    pkg_dir = font.familyname + ".fontpkg"
+    pkg_dir = family_name + ".fontpkg"
     if os.path.exists(pkg_dir):
         if not yes:
-            click.confirm("Font package %s already exists. Delete and regenerate?" % pkg_dir, abort=True)
+            click.confirm("%s already exists. Delete and regenerate?" % pkg_dir, abort=True)
         shutil.rmtree(pkg_dir)
         os.mkdir(pkg_dir)
-    # convert to UFO and reopen
-    ufo_dir = _convert_fontfile(fontfile, "ufo")
-    target = os.path.join(os.path.basename(pkg_dir), os.path.basename(ufo_dir))
-    shutil.move(ufo_dir, target)
+
+    for fontfile in fontfiles:
+        font = open_font(fontfile)
+        from pprint import pprint
+        pprint(font.sfnt_names)
+        font_info = {"postscript_name": font.fontname,
+                     "full_name": font.fullname,
+                     "weight": font.weight,
+                     "version": font.version,
+                     "italic": bool(font.italicangle),
+                     }
+        pkg_info["resources"].append(font_info)
+        # convert to UFO
+        ufo_dir = _convert_fontfile(fontfile, "ufo")
+        target = os.path.join(os.path.basename(pkg_dir), os.path.basename(ufo_dir))
+        shutil.move(ufo_dir, target)
+
     # generate JSON
-    font_info = {
-        "fullname": font.fullname,
-        "fontname": font.fontname,
-        "weight": font.weight,
-        "familyname": font.familyname,
-        "copyright": font.copyright,
-        "version": font.version,
-        "fontlog": font.fontlog,
-    }
     json_file = os.path.join(pkg_dir, "fontpackage.json")
     f = codecs.open(json_file, 'w', 'utf-8')
-    f.write(json.dumps(font_info, indent=4))
+    f.write(json.dumps(pkg_info, indent=4))
     f.close()
     # generate FONTLOG
     if font.fontlog:
@@ -190,7 +253,7 @@ def effect_shadow(fontfiles, angle, outline_width, shadow_width):
               os.path.join(SCRIPTS_DIR, "fffshadow.pe"), fontfile, outfile,
               angle, outline_width, shadow_width
         )
-        subprocess.call(cmd, shell=True)
+        run_shell_cmd(cmd)
 
 
 @click.option("-o", "--outline-width", help="Outline stroke width", default=20)
@@ -206,7 +269,7 @@ def effect_outline(fontfiles, outline_width):
               os.path.join(SCRIPTS_DIR, "fffoutline.pe"), fontfile, outfile,
               outline_width
         )
-        subprocess.call(cmd, shell=True)
+        run_shell_cmd(cmd, shell=True)
 
 
 @click.option("-o", "--outline-width", help="Outline stroke width", default=20)
@@ -223,7 +286,7 @@ def effect_inline(fontfiles, outline_width, gap):
               os.path.join(SCRIPTS_DIR, "fffinline.pe"), fontfile, outfile,
               outline_width, gap
         )
-        subprocess.call(cmd, shell=True)
+        run_shell_cmd(cmd, shell=True)
 
 
 @cli.group()
