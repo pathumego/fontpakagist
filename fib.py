@@ -73,6 +73,7 @@ def _create_fontpkg(fontfile, yes=False):
 def open_font(fontfile, debug=False):
     # suppress pesky fontforge warnings
     if not debug:
+        # FIXME: Suppress stdout + stderr
         font = fontforge.open(fontfile)
     else:
         font = fontforge.open(fontfile)
@@ -94,7 +95,7 @@ def get_attr_from_fonts(attr_name, fontfiles, is_ttfname=False, ignore_blank=Fal
         return values[0]
     else:
         if prompt:
-            click.echo("Found more than one possibility for the family name.")
+            click.echo("Found more than one possibility for property '%s'." % attr_name)
             for i, v in enumerate(unique_values):
                 click.echo("%d) %s" % (i + 1, v))
             sel = click.prompt("Your choice", default=1)
