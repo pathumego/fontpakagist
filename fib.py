@@ -32,16 +32,19 @@ def run_shell_cmd(cmd):
     subprocess.call(cmd, shell=True)
 
 
-def _convert_fontfile(fontfile, format):
+def _convert_fontfile(fontfile, format, outdir=None):
     font = open_font(fontfile)
-    d = os.path.dirname(os.path.abspath(fontfile)) + '/'
+    if not outdir:
+        d = os.path.dirname(os.path.abspath(fontfile)) + '/'
+    else:
+        d = os.path.abspath(outdir)
     filename = os.path.basename(fontfile)
     basename, ext = os.path.splitext(filename)
     if format == "woff":
-        filename = d + basename + '.woff'
+        filename = os.path.join(d, basename + '.woff')
         font.generate(filename)
     elif format == "otf":
-        filename = d + basename + '.otf'
+        filename = os.path.join(d, basename + '.otf')
         font.generate(filename)
     elif format == "ttf":
         filename = d + basename + '.ttf'
@@ -50,7 +53,8 @@ def _convert_fontfile(fontfile, format):
         filename = d + basename + '.svg'
         font.generate(filename)
     elif format == "ufo":
-        filename = d + basename + '.ufo'
+        filename = os.path.join(d, basename + '.ufo')
+        print filename
         font.generate(filename)
     elif format == "sfd":
         filename = d + basename + '.sfd'
@@ -77,27 +81,27 @@ def _convert_fontfile(fontfile, format):
 @click.option("-f", "--sfd", is_flag=True, help="SFD format (Fontforge)")
 @click.option("-u", "--ufo", is_flag=True, help="UFO format")
 @click.option("-e", "--eot", is_flag=True, help="EOT format")
-@click.option("-p", "--pack-webfont", is_flag=True,
-              help="Make a ready-to-use webfont package")
+@click.option("-p", "--pack-webfont", is_flag=True, help="Make a ready-to-use webfont package")
+@click.option("-O", "--output-dir", help="Dir to place output files in (default: same as input file)", default="")  # TODO: add type
 @click.argument("fontfiles", nargs=-1, type=click.Path(exists=True))
-def convert(fontfiles, woff, ttf, otf, svg, sfd, ufo, eot, pack_webfont):
+def convert(fontfiles, woff, ttf, otf, svg, sfd, ufo, eot, pack_webfont, output_dir):
     """Convert fonts to and from various formats"""
     for fontfile in fontfiles:
         fontfile = click.format_filename(fontfile)
         if woff:
-            _convert_fontfile(fontfile, "woff")
+            _convert_fontfile(fontfile, "woff", output_dir)
         if otf:
-            _convert_fontfile(fontfile, "otf")
+            _convert_fontfile(fontfile, "otf", output_dir)
         if ttf:
-            _convert_fontfile(fontfile, "ttf")
+            _convert_fontfile(fontfile, "ttf", output_dir)
         if svg:
-            _convert_fontfile(fontfile, "svg")
+            _convert_fontfile(fontfile, "svg", output_dir)
         if ufo:
-            _convert_fontfile(fontfile, "ufo")
+            _convert_fontfile(fontfile, "ufo", output_dir)
         if sfd:
-            _convert_fontfile(fontfile, "sfd")
+            _convert_fontfile(fontfile, "sfd", output_dir)
         if eot:
-            _convert_fontfile(fontfile, "eot")
+            _convert_fontfile(fontfile, "eot", output_dir)
 
 
 @cli.command()
@@ -139,7 +143,7 @@ def get_attr_from_fonts(attr_name, fontfiles, is_ttfname=False, ignore_blank=Fal
         # all have same family name
         return values[0]
     else:
-        log.debug("Multiple values for %s" % attr_name)
+        log.warning("Multiple values for %s" % attr_name)
         return values
 
 
@@ -177,17 +181,16 @@ def create(fontfiles, yes):
     }
 
     # prompt if ok to create pkg dir
-    pkg_dir = family_name + ".fontpkg"
+    pkg_dir = os.path.abspath(family_name + ".fontpkg")
     if os.path.exists(pkg_dir):
         if not yes:
             click.confirm("%s already exists. Delete and regenerate?" % pkg_dir, abort=True)
         shutil.rmtree(pkg_dir)
-        os.mkdir(pkg_dir)
+    os.mkdir(pkg_dir)
 
     for fontfile in fontfiles:
         font = open_font(fontfile)
-        from pprint import pprint
-        pprint(font.sfnt_names)
+        # log.debug(font.sfnt_names)
         font_info = {"postscript_name": font.fontname,
                      "full_name": font.fullname,
                      "weight": font.weight,
@@ -196,9 +199,9 @@ def create(fontfiles, yes):
                      }
         pkg_info["resources"].append(font_info)
         # convert to UFO
-        ufo_dir = _convert_fontfile(fontfile, "ufo")
-        target = os.path.join(os.path.basename(pkg_dir), os.path.basename(ufo_dir))
-        shutil.move(ufo_dir, target)
+        _convert_fontfile(fontfile, "ufo", outdir=pkg_dir)
+        # target = os.path.join(os.path.basename(pkg_dir), os.path.basename(ufo_dir))
+        # shutil.move(ufo_dir, target)
 
     # generate JSON
     json_file = os.path.join(pkg_dir, "fontpackage.json")
