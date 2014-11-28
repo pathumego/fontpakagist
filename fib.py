@@ -21,12 +21,6 @@ except:
 SCRIPTS_DIR = "/home/rlafuente/repos/tinytypetools/fffilters"
 
 
-@click.group()
-def cli():
-    """A swiss-knife for working with font files."""
-    pass
-
-
 def run_shell_cmd(cmd):
     log.debug(cmd)
     subprocess.call(cmd, shell=True)
@@ -54,7 +48,6 @@ def _convert_fontfile(fontfile, format, outdir=None):
         font.generate(filename)
     elif format == "ufo":
         filename = os.path.join(d, basename + '.ufo')
-        print filename
         font.generate(filename)
     elif format == "sfd":
         filename = d + basename + '.sfd'
@@ -71,6 +64,55 @@ def _convert_fontfile(fontfile, format, outdir=None):
             run_shell_cmd(cmd)
             os.remove(ttf_filename)
     return filename
+
+
+def _create_fontpkg(fontfile, yes=False):
+    pass
+
+
+def open_font(fontfile, debug=False):
+    # suppress pesky fontforge warnings
+    if not debug:
+        font = fontforge.open(fontfile)
+    else:
+        font = fontforge.open(fontfile)
+    return font
+
+
+def get_attr_from_fonts(attr_name, fontfiles, is_ttfname=False, ignore_blank=False, prompt=True):
+    values = []
+    for fontfile in fontfiles:
+        font = open_font(fontfile)
+        if is_ttfname:
+            value = get_ttf_property(font, attr_name)
+        else:
+            value = getattr(font, attr_name)
+        values.append(value)
+    unique_values = list(set(values))
+    if len(unique_values) == 1:
+        # all have same family name
+        return values[0]
+    else:
+        if prompt:
+            click.echo("Found more than one possibility for the family name.")
+            for i, v in enumerate(unique_values):
+                click.echo("%d) %s" % (i + 1, v))
+            sel = click.prompt("Your choice", default=1)
+            return unique_values[sel - 1]
+        return values
+
+
+def get_ttf_property(font, name):
+    for lang, attr, value in font.sfnt_names:
+        if attr.lower() == name.lower():
+            return value
+    return None
+
+
+@click.group()
+def cli():
+    """A swiss-knife for working with font files."""
+    pass
 
 
 @cli.command()
@@ -116,44 +158,6 @@ def pkg():
     pass
 
 
-def _create_fontpkg(fontfile, yes=False):
-    pass
-
-
-def open_font(fontfile, debug=False):
-    # suppress pesky fontforge warnings
-    if not debug:
-        font = fontforge.open(fontfile)
-    else:
-        font = fontforge.open(fontfile)
-    return font
-
-
-def get_attr_from_fonts(attr_name, fontfiles, is_ttfname=False, ignore_blank=False):
-    values = []
-    for fontfile in fontfiles:
-        font = open_font(fontfile)
-        if is_ttfname:
-            value = get_ttf_property(font, attr_name)
-        else:
-            value = getattr(font, attr_name)
-        values.append(value)
-    unique_values = list(set(values))
-    if len(unique_values) == 1:
-        # all have same family name
-        return values[0]
-    else:
-        log.warning("Multiple values for %s" % attr_name)
-        return values
-
-
-def get_ttf_property(font, name):
-    for lang, attr, value in font.sfnt_names:
-        if attr.lower() == name.lower():
-            return value
-    return None
-
-
 @click.option("-y", "--yes", is_flag=True, help="Assume yes answer to all prompts (non-interactive)", default=False)
 @click.argument("fontfiles", nargs=-1, type=click.Path(exists=True))
 @pkg.command()
@@ -176,7 +180,7 @@ def create(fontfiles, yes):
         "vendor_url": get_attr_from_fonts("vendor url", fontfiles, is_ttfname=True),
         "trademark": get_attr_from_fonts("trademark", fontfiles, is_ttfname=True),
         "license": get_attr_from_fonts("license", fontfiles, is_ttfname=True),
-        "license url": get_attr_from_fonts("license_url", fontfiles, is_ttfname=True),
+        "license url": get_attr_from_fonts("license url", fontfiles, is_ttfname=True),
         "resources": [],
     }
 
@@ -190,18 +194,19 @@ def create(fontfiles, yes):
 
     for fontfile in fontfiles:
         font = open_font(fontfile)
-        # log.debug(font.sfnt_names)
+        # print
+        # from pprint import pprint
+        # pprint(font.sfnt_names)
         font_info = {"postscript_name": font.fontname,
                      "full_name": font.fullname,
                      "weight": font.weight,
+                     "style": get_ttf_property(font, "subfamily"),
                      "version": font.version,
                      "italic": bool(font.italicangle),
                      }
         pkg_info["resources"].append(font_info)
         # convert to UFO
         _convert_fontfile(fontfile, "ufo", outdir=pkg_dir)
-        # target = os.path.join(os.path.basename(pkg_dir), os.path.basename(ufo_dir))
-        # shutil.move(ufo_dir, target)
 
     # generate JSON
     json_file = os.path.join(pkg_dir, "fontpackage.json")
@@ -233,10 +238,16 @@ def sync():
     # compare values and update them
 
 
+@click.argument("fontpkg", nargs=1, type=click.Path(exists=True))
 @pkg.command()
-def validate():
+def validate(fontpkg):
     """Checks if the font package is valid."""
     # check if JSON passes
+    try:
+        json.loads(os.path.join(fontpkg, "fontpackage.json"))
+    except ValueError:
+        log.error("Invalid JSON in fontpackage.json file.")
+        raise
     # check attributes
     # check if font files are readable and conform
 
