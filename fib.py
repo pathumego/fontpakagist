@@ -181,7 +181,7 @@ def create(fontfiles, yes):
         "vendor_url": get_attr_from_fonts("vendor url", fontfiles, is_ttfname=True),
         "trademark": get_attr_from_fonts("trademark", fontfiles, is_ttfname=True),
         "license": get_attr_from_fonts("license", fontfiles, is_ttfname=True),
-        "license url": get_attr_from_fonts("license url", fontfiles, is_ttfname=True),
+        "license_url": get_attr_from_fonts("license url", fontfiles, is_ttfname=True),
         "resources": [],
     }
 
