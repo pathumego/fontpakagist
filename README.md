@@ -1,4 +1,4 @@
-Fib is intended to be a general-ṕurpose tool to work with font files.
+Fib is intended to be a general-ṕurpose tool to work with font files in the command line.
 
 Supported features:
 * **Convert** between font file formats (TrueType, OpenType, WOFF, SVG, SFD, UFO and EOT)
@@ -35,4 +35,3 @@ Or, using more compact syntax:
     fib convert -u fonts/*
 
 ## Examples
-
