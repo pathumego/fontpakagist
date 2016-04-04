@@ -13,13 +13,15 @@ except:
     click.echo("ERROR: Could not import the python-fontforge module!")
     click.echo("")
     click.echo("It is not installable in virtualenvs, so please try using your package manager.")
-    click.echo("If you have it on your system, try deleting the no-site-packages.txt file inside")
+    click.echo("If you have it on your system, try deleting the no-global-site-packages.txt file inside")
     click.echo("your virtualenv's lib/pythonX.X directory.")
     sys.exit()
 
 
 SCRIPTS_DIR = "/home/rlafuente/repos/tinytypetools/fffilters"
 
+
+# Helper functions #######################################################
 
 def run_shell_cmd(cmd):
     log.debug(cmd)
@@ -66,10 +68,6 @@ def _convert_fontfile(fontfile, format, outdir=None):
     return filename
 
 
-def _create_fontpkg(fontfile, yes=False):
-    pass
-
-
 def open_font(fontfile, debug=False):
     # suppress pesky fontforge warnings
     if not debug:
@@ -109,6 +107,8 @@ def get_ttf_property(font, name):
             return value
     return None
 
+
+# Commandline argument groups ###################################
 
 @click.group()
 def cli():
@@ -150,7 +150,7 @@ def convert(fontfiles, woff, ttf, otf, svg, sfd, ufo, eot, pack_webfont, output_
 @cli.command()
 def transpace():
     """Transplant one font's spacing into another"""
-    click.echo("Transpacing!")
+    click.echo("Transpacing is not implemented yet, sorry!")
 
 
 @cli.group()
@@ -234,9 +234,9 @@ def create(fontfiles, yes):
 @pkg.command()
 def sync():
     """Updates the font files in a package to match fontpackage.json metadata."""
-    # read datapackage JSON
-    # read font file
-    # compare values and update them
+    # TODO: read datapackage JSON
+    # TODO: read font file
+    # TODO: compare values and update them
 
 
 @click.argument("fontpkg", nargs=1, type=click.Path(exists=True))
@@ -249,8 +249,8 @@ def validate(fontpkg):
     except ValueError:
         log.error("Invalid JSON in fontpackage.json file.")
         raise
-    # check attributes
-    # check if font files are readable and conform
+    # TODO: check attributes
+    # TODO: check if font files are readable and conform
 
 
 @click.option("-a", "--angle", help="Angle in degrees", default=45)
