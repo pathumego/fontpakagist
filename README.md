@@ -12,17 +12,25 @@ Features that we're working on:
 
 ## Installation
 
-### python-fontforge
+At this moment, installing Fib requires a bit of setup. We hope to make this
+step as easy as running one command, but the current procedures aren't
+complicated either!
 
-Fib depends on the FontForge Python bindings, and these need to be installed system-wide using your package manager.
+Let us know in the issue tracker if you run into problems.
+
+### Base dependencies
+
+There are a couple of dependencies that need to be installed beforehand. Fib
+also depends on the FontForge Python bindings, and these need to be installed
+system-wide using your package manager.
 
 On Debian/Ubuntu:
 
-    sudo apt-get install python-fontforge
+    sudo apt-get install python-virtualenv make python-fontforge
 
 ### Fib
 
-At this moment, installing Fib requires a bit of setup. Virtualenvs are used to properly handle dependencies, but setting one up is easy:
+Virtualenvs are used to properly handle dependencies, but setting one up is easy:
 
     make install
 
