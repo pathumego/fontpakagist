@@ -1,14 +1,13 @@
-Fib is a tool to work with font files in the command line.
+Fib is a tool to work with font files and font packages in the command line.
 
 Supported features:
-* **Convert** between font file formats (TrueType, OpenType, WOFF, SVG, SFD, UFO and EOT)
-* Apply **effects** to fonts (shadow, outline and inline)
-* **Create font packages** from existing font files
-* **Validate** existing font packages
+* Create font packages from existing font files
+* Convert between font file formats (TrueType, OpenType, WOFF, SVG, SFD, UFO and EOT)
+* Apply effects to fonts (shadow, outline and inline)
 
 Features that we're working on:
-* Full support for the font package specification
-* Foundry creation
+* Validate existing font packages
+* Create foundry sites from a set of font packages
 
 ## Installation
 
