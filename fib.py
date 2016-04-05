@@ -3,9 +3,22 @@ import os
 import shutil
 import codecs
 import json
-import click
 import subprocess
-from zenlog import log
+
+try:
+    import click
+    from zenlog import log
+except:
+    click.echo("")
+    click.echo("ERROR: Could not import the Fib dependencies!")
+    click.echo("")
+    click.echo("This probably means you aren't running the Fib virtualenv.")
+    click.echo("You should go to the Fib directory and run:")
+    click.echo("    . .env/bin/activate")
+    click.echo("")
+    click.echo("(you also need to have run 'make install' beforehand)")
+    sys.exit()
+
 try:
     import fontforge
 except:

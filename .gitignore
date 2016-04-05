@@ -11,3 +11,12 @@ fib.egg-info
 *~
 *.sfd
 *.fontpkg
+
+# local venv and setup cruft
+.env/
+build/
+dist/
+
+# generated dirs
+fontpackages/
+repos/

@@ -14,6 +14,30 @@ Features that we're working on:
 
 ### python-fontforge
 
+Fib depends on the FontForge Python bindings, and these need to be installed system-wide using your package manager.
+
+On Debian/Ubuntu:
+
+    sudo apt-get install python-fontforge
+
+### Fib
+
+At this moment, installing Fib requires a bit of setup. Virtualenvs are used to properly handle dependencies, but setting one up is easy:
+
+    make install
+
+This will also activate the virtualenv, so we can now just type
+
+    fib
+
+And if all went well, it will show the available commands.
+
+However, there's a tricky caveat: every time you open a new terminal or shell, you need to be running the virtualenv before calling `fib`:
+
+    source .env/bin/activate
+
+
+
 ### ttf2eot
 
 In order to generate .eot files (necessary for IE support on the web), you need
@@ -34,7 +58,8 @@ To create a font package from one or more font files:
 
     fib pkg create PropCourierSans-Bold.otf PropCourierSans-Medium.otf PropCourierSans-Regular.otf
 
-Fib will try to guess which of the input fonts belong to the same family.
+Fib will try to guess if the input fonts belong to the same family by reading
+the `familyname` font attribute. 
 
 ### Validate an existing font package
 
