@@ -33,13 +33,13 @@ Virtualenvs are used to properly handle dependencies, but setting one up is easy
 
     make install
 
-This will also activate the virtualenv, so we can now just type
+This should also activate the virtualenv, so we can just type
 
     fib
 
 And if all went well, it will show the available commands.
 
-However, there's a tricky caveat: every time you open a new terminal or shell, you need to be running the virtualenv before calling `fib`:
+However, if the virtualenv is not running or if you **open a new terminal or shell**, type this before calling `fib`:
 
     source .env/bin/activate
 
