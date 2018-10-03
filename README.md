@@ -53,30 +53,6 @@ command-line tool to convert files.
 
     sudo npm install ttf2eot -g
 
-## Font packages
-
-The font package format is a container for a font family's font files and extended metadata. Its purpose is to contain all necessary working files for a font family, as well as its meta-information (README, font log, metadata, categories, description).
-
-### Create a font package
-
-Commands to work with font package all start with `fib pkg`.
-
-To create a font package from one or more font files:
-
-    fib pkg create PropCourierSans-Bold.otf PropCourierSans-Medium.otf PropCourierSans-Regular.otf
-
-Fib will try to guess if the input fonts belong to the same family by reading
-the `familyname` font attribute. 
-
-### Validate an existing font package
-
-TODO
-
-### Sync font package metadata
-
-TODO
-
-
 ## General font editing tools
 
 ### Convert
@@ -101,3 +77,27 @@ Fib. One or more font files can be specified.
     fib effect_outline Avara.ttf --outline-width 20
     fib effect_inline Avara.ttf --outline-width 20 --gap 25 
     fib effect_shadow Avara.ttf --angle 45 --outline-width 5 --shadow-width 30 
+## Font packages
+
+The font package format is a container for a font family's font files and extended metadata. Its purpose is to contain all necessary working files for a font family, as well as its meta-information (README, font log, metadata, categories, description).
+
+### Create a font package
+
+Commands to work with font package all start with `fib pkg`.
+
+To create a font package from one or more font files:
+
+    fib pkg create PropCourierSans-Bold.otf PropCourierSans-Medium.otf PropCourierSans-Regular.otf
+
+Fib will try to guess if the input fonts belong to the same family by reading
+the `familyname` font attribute. 
+
+### Validate an existing font package
+
+TODO
+
+### Sync font package metadata
+
+TODO
+
+
