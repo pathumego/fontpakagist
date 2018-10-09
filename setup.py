@@ -6,6 +6,7 @@ setup(
     py_modules=['fib'],
     install_requires=[
         'Click',
+        'zenlog',
     ],
     entry_points='''
         [console_scripts]
